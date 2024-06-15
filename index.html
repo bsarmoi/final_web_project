@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Teacher Task Manager</h1>
+        <div class="user-profile">Profile</div>
+    </header>
+    <div class="container">
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Lesson Plans</a></li>
+                <li><a href="#">Records</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <section class="task-overview">
+                <h2>Tasks Overview</h2>
+                <div class="task-stats">
+                    <div class="stat">Pending: <span id="pending-count">0</span></div>
+                    <div class="stat">In Progress: <span id="in-progress-count">0</span></div>
+                    <div class="stat">Completed: <span id="completed-count">0</span></div>
+                </div>
+                <button id="add-task-btn">Add New Task</button>
+            </section>
+            <section class="task-list">
+                <h2>Task List</h2>
+                <ul id="task-list">
+                    <!-- Task items will be added here dynamically -->
+                </ul>
+            </section>
+        </main>
+    </div>
+    <footer>
+        <p>Help & Support</p>
+    </footer>
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Add New Task</h2>
+            <form id="task-form">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" required>
+                <label for="description">Description</label>
+                <textarea id="description" name="description" required></textarea>
+                <label for="due-date">Due Date</label>
+                <input type="date" id="due-date" name="due-date" required>
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority" required>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+                <button type="submit">Add Task</button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
