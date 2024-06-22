@@ -36,6 +36,13 @@
                     <!-- Task items will be added here dynamically -->
                 </ul>
             </section>
+            <section class="lesson-plan-list">
+                <h2>Lesson Plans</h2>
+                <button id="add-lesson-plan-btn">Add New Lesson Plan</button>
+                <ul id="lesson-plan-list">
+                    <!-- Lesson plan items will be added here dynamically -->
+                </ul>
+            </section>
         </main>
     </div>
     <footer>
@@ -59,6 +66,25 @@
                     <option value="High">High</option>
                 </select>
                 <button type="submit">Add Task</button>
+            </form>
+        </div>
+    </div>
+    <div id="lesson-plan-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-lesson-plan-btn">&times;</span>
+            <h2>Add New Lesson Plan</h2>
+            <form id="lesson-plan-form">
+                <label for="topic">Topic</label>
+                <input type="text" id="topic" name="topic" required>
+                <label for="objectives">Objectives</label>
+                <textarea id="objectives" name="objectives" required></textarea>
+                <label for="resources">Resources</label>
+                <textarea id="resources" name="resources" required></textarea>
+                <label for="activities">Activities</label>
+                <textarea id="activities" name="activities" required></textarea>
+                <label for="assessment">Assessment</label>
+                <textarea id="assessment" name="assessment" required></textarea>
+                <button type="submit">Add Lesson Plan</button>
             </form>
         </div>
     </div>

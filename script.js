@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
     const addTaskBtn = document.getElementById('add-task-btn');
+    const addLessonPlanBtn = document.getElementById('add-lesson-plan-btn'); // New button for lesson plans
     const taskModal = document.getElementById('task-modal');
+    const lessonPlanModal = document.getElementById('lesson-plan-modal'); // New modal for lesson plans
     const closeBtn = document.querySelector('.close-btn');
+    const closeLessonPlanBtn = document.querySelector('.close-lesson-plan-btn'); // New close button for lesson plans
     const taskForm = document.getElementById('task-form');
+    const lessonPlanForm = document.getElementById('lesson-plan-form'); // New form for lesson plans
     const taskList = document.getElementById('task-list');
+    const lessonPlanList = document.getElementById('lesson-plan-list'); // New list for lesson plans
     const notification = document.createElement('div');
     notification.classList.add('notification');
     document.body.appendChild(notification);
@@ -22,22 +27,61 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function fetchLessonPlans() {
+        try {
+            const response = await fetch('http://localhost:3000/lesson_plans');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const lessonPlans = await response.json();
+            return lessonPlans;
+        } catch (error) {
+            console.error('Error fetching lesson plans:', error);
+            return [];
+        }
+    }
+
     async function renderTasks() {
         const tasks = await fetchTasks();
         taskList.innerHTML = '';
         tasks.forEach(task => {
-            const taskItem = document.createElement('li');
-            taskItem.innerHTML = `
-                <span>${task.title}</span>
-                <div class="actions">
-                    <button class="complete-btn" data-id="${task.id}">Complete</button>
-                    <button class="edit-btn" data-id="${task.id}">Edit</button>
-                    <button class="delete-btn" data-id="${task.id}">Delete</button>
-                </div>
-            `;
+            const taskItem = createTaskElement(task);
             taskList.appendChild(taskItem);
         });
         addTaskEventListeners();
+    }
+
+    async function renderLessonPlans() {
+        const lessonPlans = await fetchLessonPlans();
+        lessonPlanList.innerHTML = '';
+        lessonPlans.forEach(lessonPlan => {
+            const lessonPlanItem = createLessonPlanElement(lessonPlan);
+            lessonPlanList.appendChild(lessonPlanItem);
+        });
+        addLessonPlanEventListeners();
+    }
+
+    function createTaskElement(task) {
+        const taskItem = document.createElement('li');
+        taskItem.innerHTML = `
+            <span>${task.title}</span>
+            <div class="actions">
+                <button class="complete-btn" data-id="${task.id}">Complete</button>
+                <button class="edit-task-btn" data-id="${task.id}">Edit</button>
+                <button class="delete-task-btn" data-id="${task.id}">Delete</button>
+            `;
+        return taskItem;
+    }
+
+    function createLessonPlanElement(lessonPlan) {
+        const lessonPlanItem = document.createElement('li');
+        lessonPlanItem.innerHTML = `
+            <span>${lessonPlan.topic}</span>
+            <div class="actions">
+                <button class="edit-lesson-plan-btn" data-id="${lessonPlan.id}">Edit</button>
+                <button class="delete-lesson-plan-btn" data-id="${lessonPlan.id}">Delete</button>
+            `;
+        return lessonPlanItem;
     }
 
     function showNotification(message) {
@@ -56,17 +100,33 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        document.querySelectorAll('.edit-btn').forEach(button => {
+        document.querySelectorAll('.edit-task-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const id = this.getAttribute('data-id');
                 editTask(id);
             });
         });
 
-        document.querySelectorAll('.delete-btn').forEach(button => {
+        document.querySelectorAll('.delete-task-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const id = this.getAttribute('data-id');
                 deleteTask(id);
+            });
+        });
+    }
+
+    function addLessonPlanEventListeners() {
+        document.querySelectorAll('.edit-lesson-plan-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                editLessonPlan(id);
+            });
+        });
+
+        document.querySelectorAll('.delete-lesson-plan-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                deleteLessonPlan(id);
             });
         });
     }
@@ -177,15 +237,117 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function editLessonPlan(id) {
+        try {
+            const response = await fetch(`http://localhost:3000/lesson_plans/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const lessonPlan = await response.json();
+            lessonPlanForm.topic.value = lessonPlan.topic;
+            lessonPlanForm.objectives.value = lessonPlan.objectives;
+            lessonPlanForm.resources.value = lessonPlan.resources;
+            lessonPlanForm.activities.value = lessonPlan.activities;
+            lessonPlanForm.assessment.value = lessonPlan.assessment;
+
+            lessonPlanModal.style.display = 'flex';
+            lessonPlanForm.removeEventListener('submit', addLessonPlan);
+            lessonPlanForm.addEventListener('submit', async function updateLessonPlan(e) {
+                e.preventDefault();
+                try {
+                    const updateResponse = await fetch(`http://localhost:3000/lesson_plans/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            topic: lessonPlanForm.topic.value,
+                            objectives: lessonPlanForm.objectives.value,
+                            resources: lessonPlanForm.resources.value,
+                            activities: lessonPlanForm.activities.value,
+                            assessment: lessonPlanForm.assessment.value
+                        })
+                    });
+                    if (!updateResponse.ok) {
+                       
+                        throw new Error(`HTTP error! Status: ${updateResponse.status}`);
+                    }
+                    lessonPlanModal.style.display = 'none';
+                    renderLessonPlans();
+                    lessonPlanForm.reset();
+                    showNotification('Lesson plan updated successfully!');
+                    lessonPlanForm.removeEventListener('submit', updateLessonPlan);
+                    lessonPlanForm.addEventListener('submit', addLessonPlan);
+                } catch (error) {
+                    console.error('Error updating lesson plan:', error);
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching lesson plan:', error);
+        }
+    }
+
+    async function deleteLessonPlan(id) {
+        try {
+            const response = await fetch(`http://localhost:3000/lesson_plans/${id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            renderLessonPlans();
+        } catch (error) {
+            console.error('Error deleting lesson plan:', error);
+        }
+    }
+
+    async function addLessonPlan(e) {
+        e.preventDefault();
+        try {
+            const response = await fetch('http://localhost:3000/lesson_plans', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    topic: lessonPlanForm.topic.value,
+                    objectives: lessonPlanForm.objectives.value,
+                    resources: lessonPlanForm.resources.value,
+                    activities: lessonPlanForm.activities.value,
+                    assessment: lessonPlanForm.assessment.value
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            renderLessonPlans();
+            lessonPlanModal.style.display = 'none';
+            lessonPlanForm.reset();
+            showNotification('Lesson plan added successfully!');
+        } catch (error) {
+            console.error('Error adding lesson plan:', error);
+        }
+    }
+
     addTaskBtn.addEventListener('click', () => {
         taskModal.style.display = 'flex';
+    });
+
+    addLessonPlanBtn.addEventListener('click', () => {
+        lessonPlanModal.style.display = 'flex';
     });
 
     closeBtn.addEventListener('click', () => {
         taskModal.style.display = 'none';
     });
 
+    closeLessonPlanBtn.addEventListener('click', () => {
+        lessonPlanModal.style.display = 'none';
+    });
+
     taskForm.addEventListener('submit', addTask);
+    lessonPlanForm.addEventListener('submit', addLessonPlan);
 
     renderTasks();
+    renderLessonPlans();
 });
